@@ -149,9 +149,19 @@ export function drawWorld(ctx, game, view) {
       ctx.stroke();
     }
   }
-  ctx.fillStyle = '#ffe9a3';
+  // Street lights: a small lamp dot by day, wrapped in a warm glow halo
+  // once dusk settles (timeOfDay past 0.62, fading in over the next stretch).
+  const lampGlow = duskStrength(game.timeOfDay);
   for (const l of world.lights) {
     if (l.x < x0 || l.y < y0 || l.x > x1 || l.y > y1) continue;
+    if (lampGlow > 0) {
+      const halo = ctx.createRadialGradient(l.x, l.y, 2, l.x, l.y, 30);
+      halo.addColorStop(0, `rgba(255,214,120,${0.5 * lampGlow})`);
+      halo.addColorStop(1, 'rgba(255,214,120,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath(); ctx.arc(l.x, l.y, 30, 0, 6.29); ctx.fill();
+    }
+    ctx.fillStyle = '#ffe9a3';
     ctx.beginPath(); ctx.arc(l.x, l.y, 4, 0, 6.29); ctx.fill();
   }
 
@@ -187,11 +197,32 @@ export function drawWorld(ctx, game, view) {
   }
 }
 
-export function drawCar(ctx, car, camera) {
+// How far dusk has settled, 0 (daylight) to 1 (full evening): the fade
+// starts at timeOfDay 0.62 and completes a short stretch of the day later.
+export function duskStrength(timeOfDay) {
+  return Math.max(0, Math.min(1, (timeOfDay - 0.62) / 0.13));
+}
+
+export function drawCar(ctx, car, camera, dusk = 0) {
   ctx.save();
   ctx.translate((car.x - camera.x) * camera.zoom, (car.y - camera.y) * camera.zoom);
   ctx.scale(camera.zoom, camera.zoom);
   ctx.rotate(car.angle);
+  // Headlights after dusk: a soft cone spilling ahead of the front bumper,
+  // drawn under the body so the car sits in its own pool of light.
+  if (dusk > 0) {
+    const beam = ctx.createLinearGradient(24, 0, 118, 0);
+    beam.addColorStop(0, `rgba(255,242,190,${0.38 * dusk})`);
+    beam.addColorStop(1, 'rgba(255,242,190,0)');
+    ctx.fillStyle = beam;
+    ctx.beginPath();
+    ctx.moveTo(24, -7);
+    ctx.lineTo(118, -32);
+    ctx.lineTo(118, 32);
+    ctx.lineTo(24, 7);
+    ctx.closePath();
+    ctx.fill();
+  }
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   roundRect(ctx, -24, -11, 52, 26, 8); ctx.fill();
   ctx.fillStyle = car.color;
@@ -200,6 +231,11 @@ export function drawCar(ctx, car, camera) {
   roundRect(ctx, -6, -10, 19, 20, 5); ctx.fill();   // cabin glass
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
   roundRect(ctx, 14, -10, 6, 20, 3); ctx.fill();    // windshield shine
+  if (dusk > 0) {
+    ctx.fillStyle = '#fff6c9';
+    ctx.beginPath(); ctx.arc(25, -8, 2.6, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(25, 8, 2.6, 0, 6.29); ctx.fill();
+  }
   ctx.fillStyle = '#15181c';
   for (const [wx, wy] of [[-17, -14], [15, -14], [-17, 11], [15, 11]]) {
     ctx.save(); ctx.translate(wx, wy); ctx.rotate(car.steerVis ? car.steerVis * 0.4 : 0); ctx.fillRect(-5, -2.5, 10, 5); ctx.restore();

@@ -11,7 +11,7 @@ import { PLACES, createWorld, distance } from './world.js';
 import { nearestCar, spawnPeds, spawnTraffic, syncPolice, updatePed, updatePoliceCar, updateTrafficCar, makeCar } from './entities.js';
 import { MISSIONS, STORY_INTRO, advanceStage, createMissionState, currentStage, objectiveTarget, startMission } from './missions.js';
 import { createPlayer, enterCar, exitCar, updateDriving, updateOnFoot } from './player.js';
-import { createCamera, drawCar, drawHUD, drawPed, drawWorld, updateCamera } from './render.js';
+import { createCamera, drawCar, drawHUD, drawPed, drawWorld, duskStrength, updateCamera } from './render.js';
 import { applyShot } from './shots.js';
 
 const canvas = document.getElementById('game');
@@ -400,7 +400,7 @@ function update(dt) {
 
 function drawMenu() {
   drawWorld(ctx, game, view);
-  for (const car of game.cars) drawCar(ctx, car, game.camera);
+  for (const car of game.cars) drawCar(ctx, car, game.camera, duskStrength(game.timeOfDay));
   ctx.fillStyle = 'rgba(6,10,24,0.55)';
   ctx.fillRect(0, 0, view.w, view.h);
   const cx = view.w / 2;
@@ -428,8 +428,9 @@ function drawMenu() {
 function draw() {
   if (game.state === 'menu') { drawMenu(); return; }
   drawWorld(ctx, game, view);
-  for (const car of game.cars) drawCar(ctx, car, game.camera);
-  for (const cop of game.police) drawCar(ctx, cop, game.camera);
+  const dusk = duskStrength(game.timeOfDay);
+  for (const car of game.cars) drawCar(ctx, car, game.camera, dusk);
+  for (const cop of game.police) drawCar(ctx, cop, game.camera, dusk);
   for (const ped of game.peds) if (ped.down < 9000) drawPed(ctx, ped, game.camera, false);
   const p = game.player;
   if (!p.car) drawPed(ctx, p, game.camera, true);
