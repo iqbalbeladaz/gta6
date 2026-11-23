@@ -1,5 +1,6 @@
-// The living city: traffic that drives the road grid, pedestrians on the
-// sidewalks, and police cruisers that hunt the player when the stars climb.
+// The living city: traffic that drives the road grid and queues behind each
+// other, pedestrians who stroll the sidewalks and scatter from danger, and
+// the Shores PD cruisers that hunt the player when the stars climb.
 
 import { CAR_MODELS, WANTED, WORLD } from './config.js';
 import { pick, range } from './random.js';
@@ -37,7 +38,7 @@ export function makePed(random, x, y) {
   };
 }
 
-// Spawn traffic on roads near a focus point, parked cars along the curbs.
+// Spawn traffic on roads near a focus point, with some cars parked at curbs.
 export function spawnTraffic(random, cars, focus, count) {
   let placed = 0; let tries = 0;
   while (placed < count && tries < count * 30) {
@@ -48,7 +49,7 @@ export function spawnTraffic(random, cars, focus, count) {
     if (!onRoad(x, y)) continue;
     if (cars.some((c) => Math.hypot(c.x - x, c.y - y) < 90)) continue;
     const car = makeCar(random, x, y);
-    // Snap onto a lane: horizontal or vertical road, right-hand side.
+    // Snap the car onto a lane: horizontal or vertical road, right-hand side.
     const mx = ((x % WORLD.block) + WORLD.block) % WORLD.block;
     if (Math.abs(mx - WORLD.block / 2) < WORLD.road / 2) {
       car.x = Math.floor(x / WORLD.block) * WORLD.block + WORLD.block / 2 + 26;
@@ -79,7 +80,8 @@ export function spawnPeds(random, peds, focus, count) {
   }
 }
 
-// Traffic AI: follow the lane, slow for the car ahead, turn at intersections.
+// Traffic AI: follow the lane at a relaxed pace, slow for whatever is ahead,
+// and sometimes turn at an intersection centre onto a new street.
 export function updateTrafficCar(random, world, car, dt, traffic, playerPos) {
   if (car.parked || !car.driver || (playerPos && car === playerPos.car)) return;
   const aheadX = car.x + Math.cos(car.angle) * 64;
@@ -95,14 +97,14 @@ export function updateTrafficCar(random, world, car, dt, traffic, playerPos) {
   car.y += Math.sin(car.angle) * car.speed * dt;
   collide(world, car, 20);
 
-  // Near an intersection centre, sometimes pick a new heading along the grid.
+  // Near an intersection centre, occasionally pick a new heading on the grid.
   const gx = Math.round((car.x - WORLD.block / 2) / WORLD.block);
   const gy = Math.round((car.y - WORLD.block / 2) / WORLD.block);
   const cx = roadCenter(gx); const cy = roadCenter(gy);
   if (Math.hypot(car.x - cx, car.y - cy) < 16 && random() < 0.012) {
     const turns = [0, Math.PI / 2, Math.PI, -Math.PI / 2].filter((a) => Math.abs(angleDiff(a, car.angle)) > 0.1);
     car.angle = pick(random, turns);
-    // Nudge into the right-hand lane for the new heading.
+    // Settle into the right-hand lane for the new heading.
     car.x = cx + Math.cos(car.angle + Math.PI / 2) * 0 + Math.sin(car.angle) * 26 * (car.angle === Math.PI ? -1 : 1) * 0;
     if (car.angle === 0) car.y = cy + 26;
     if (car.angle === Math.PI) car.y = cy - 26;
@@ -119,7 +121,8 @@ export function angleDiff(a, b) {
   return d;
 }
 
-// Police AI: chase, predict the player's heading, and try to stop the car.
+// Police AI: steer at where the target is heading, not just where it is, and
+// reverse out when a bad approach angle leaves the cruiser nose-first in a jam.
 export function updatePoliceCar(world, car, dt, target) {
   const lead = 0.45;
   const tx = target.x + (target.vx || 0) * lead;
@@ -155,7 +158,7 @@ export function syncPolice(random, police, wanted, focus) {
   while (police.length > want) police.pop();
 }
 
-// Pedestrians stroll between sidewalk points; danger makes them run and shout.
+// Pedestrians stroll between sidewalk points; danger nearby makes them run.
 export function updatePed(random, world, ped, dt, danger) {
   if (ped.down > 0) { ped.down -= dt; return; }
   if (danger && Math.hypot(danger.x - ped.x, danger.y - ped.y) < 190) ped.panic = 2.2;

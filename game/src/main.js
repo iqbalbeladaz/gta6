@@ -1,7 +1,8 @@
-// Neon Shores — main loop and game state. An original open-world crime game:
-// explore a coastal city on foot and by car, steal rides, run Rosa Marlin's
-// five jobs, collect the golden shells, work taxi fares, and keep one step
-// ahead of the Shores PD. Keyboard and mouse; progress saves in the browser.
+// Neon Shores — the main loop and the game state. An original open-world
+// crime game: explore a coastal city on foot and by car, steal rides, run
+// Rosa Marlin's five story jobs, collect the golden shells, work taxi fares,
+// and keep one step ahead of the Shores PD. Keyboard and mouse to play;
+// progress saves itself in the browser as you go.
 
 import { SAVE_KEY, WANTED } from './config.js';
 import { createRandom } from './random.js';
@@ -93,7 +94,7 @@ function addWanted(stars, reason) {
   }
 }
 function crime(stars, reason) {
-  // A crime counts double if a cruiser or a crowd actually sees it.
+  // A crime counts double if a cruiser or a crowd actually sees it happen.
   const seen = game.police.some((c) => distance(c, game.player) < 340)
     || game.peds.some((p) => p.down <= 0 && distance(p, game.player) < 150);
   addWanted(seen ? stars + 1 : stars, reason);
@@ -195,7 +196,7 @@ function attack() {
     p.fireAnim = 0.09;
     audio.shoot();
     crime(2, 'shots fired');
-    // Hitscan along the aim line.
+    // Hitscan along the aim line: the nearest body or car in the cone wins.
     let best = null; let bestD = 430;
     for (const ped of game.peds) {
       const d = distance(ped, p);
@@ -248,13 +249,13 @@ function update(dt) {
 
   if (game.state !== 'playing') return;
 
-  // Mission timer.
+  // The mission stage timer, when the current stage has one.
   if (game.missions.active && game.missions.stageTimer > 0) {
     game.missions.stageTimer -= dt;
     if (game.missions.stageTimer <= 0) failMission('Out of time. The job is still on the board — try again.');
   }
 
-  // Player movement and cars.
+  // Player movement: driving if a car is held, on foot otherwise.
   let crash = 0;
   if (p.car) {
     crash = updateDriving(game.world, p, input, dt);
@@ -281,14 +282,15 @@ function update(dt) {
   }
   if (p.car) game.prompt = '[F] Get out · Space handbrake · WASD drive';
 
-  // World life around the player.
+  // World life around the player: traffic, the police fleet, engine and siren.
   for (const car of game.cars) updateTrafficCar(random, game.world, car, dt, game.cars, p.car ? null : p);
   syncPolice(random, game.police, game.wanted, p);
   for (const cop of game.police) updatePoliceCar(game.world, cop, dt, p);
   audio.siren(game.police.length > 0 && distance(game.police[0], p) < 700, dt);
   audio.engine(p.car ? p.car.speed / p.car.model.topSpeed : 0, !!p.car);
 
-  // Car-to-car bumps and running the world over.
+  // Car-to-car bumps: circles push apart, and a hard shove involving the
+  // player's car costs a little health and makes a lot of noise.
   const allCars = [...game.cars, ...game.police];
   for (const car of allCars) {
     for (const other of allCars) {
@@ -316,13 +318,13 @@ function update(dt) {
       audio.crash(0.4);
     }
   }
-  // Keep the neighbourhood populated, retire the far side of town.
+  // Keep the neighbourhood populated, and retire the far side of town.
   game.cars = game.cars.filter((c) => c === p.car || c === game.goldCar || distance(c, p) < 1500);
   game.peds = game.peds.filter((ped) => distance(ped, p) < 1300);
   if (game.cars.length < 15) spawnTraffic(random, game.cars, p, 4);
   if (game.peds.length < 20) spawnPeds(random, game.peds, p, 5);
 
-  // Wanted decay and the bust meter.
+  // Wanted decay while hidden, and the bust meter while cornered and slow.
   const nearestCop = game.police.length ? Math.min(...game.police.map((c) => distance(c, p))) : 9999;
   if (game.wanted > 0 && nearestCop > 430) {
     game.hideTimer += dt;
@@ -345,7 +347,7 @@ function update(dt) {
     }
   } else game.bustMeter = Math.max(0, game.bustMeter - dt * 1.6);
 
-  // Pickups: shells, the garage ammo top-up, and taxi fares.
+  // Pickups: the golden shells, the garage's patch-up and ammo, taxi fares.
   for (const shell of game.world.shells) {
     if (!shell.taken && distance(shell, p) < 30) {
       shell.taken = true;
@@ -369,7 +371,7 @@ function update(dt) {
       const dests = Object.values(PLACES);
       const dest = dests[Math.floor(random() * dests.length)];
       game.fare = { pos: dest, label: 'drop-off at ' + dest.name, pay: 90 + Math.round(distance(farePed, dest) / 9) };
-      farePed.down = 99999; // rides along, off the street
+      farePed.down = 99999; // rides along in the cab, off the street
       setToast('Fare picked up — ' + dest.name);
       game.refreshObjective();
     }
@@ -385,7 +387,7 @@ function update(dt) {
   checkMissionStage();
   game.refreshObjective();
 
-  // Death.
+  // Death: the clinic patches Dario up, at a price.
   if (p.health <= 0) {
     p.money = Math.max(0, p.money - 200);
     setBanner('WASTED', 'Clinica Vida patches you up for $200. The week goes on.');
@@ -420,7 +422,7 @@ function drawMenu() {
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
   ctx.font = '15px system-ui, sans-serif';
   ctx.fillText('WASD move / drive · F enter & steal cars · Shift sprint · Space handbrake / drift', cx, view.h * 0.7);
-  ctx.fillText('Mouse aim · Click punch & shoot · P pause · M mute-free procedural sound, no files', cx, view.h * 0.7 + 24);
+  ctx.fillText('Mouse aim · Click punch & shoot · P pause · Procedural sound, no audio files', cx, view.h * 0.7 + 24);
   ctx.fillText('Five story jobs, taxi fares, ten golden shells, and the whole Shores PD to outrun.', cx, view.h * 0.7 + 48);
   ctx.textAlign = 'left';
 }

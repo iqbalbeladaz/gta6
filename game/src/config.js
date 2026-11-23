@@ -1,10 +1,11 @@
 // Neon Shores — tuning constants for the city, the player, vehicles and the law.
-// One place for every number the rest of the game reads, so the feel can be tuned here.
+// Every number the rest of the game reads lives here, so the feel of the game
+// can be tuned in one place without hunting through the systems.
 
 export const WORLD = {
   width: 3400,
   height: 2600,
-  block: 420,          // city grid pitch: one block + one road
+  block: 420,          // city grid pitch: one block plus one road
   road: 118,           // road width in world units
   beachX: 2980,        // east of this line the city gives way to sand and sea
 };
@@ -28,7 +29,7 @@ export const CAR = {
   health: 100,
 };
 
-// Top speed and paint for each driveable model in the city.
+// Top speed, acceleration feel and paint for each driveable model in the city.
 export const CAR_MODELS = [
   { name: 'Marlin Sedan',    topSpeed: 335, accel: 1.0,  colors: ['#3f8ef7', '#c0c6ce', '#37424e', '#7a1f1f'] },
   { name: 'Caiman Coupe',    topSpeed: 395, accel: 1.18, colors: ['#e33d5b', '#ffb02e', '#22262b', '#f2f2f2'] },
@@ -42,7 +43,7 @@ export const WANTED = {
   maxStars: 5,
   decaySeconds: 26,      // hidden time needed for one star to cool off
   bustSeconds: 2.6,      // time a close, slow police stop needs to bust the player
-  policePerStar: 2,      // cruisers the city fields per star
+  policePerStar: 2,      // cruisers the city fields per wanted star
 };
 
 export const MISSION_REWARD = [250, 600, 900, 1200, 2000];

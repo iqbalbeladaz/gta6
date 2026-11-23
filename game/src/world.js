@@ -1,6 +1,7 @@
-// The city of Neon Shores: a sun-soaked coastal grid generated from a seed —
-// road network, city blocks with named buildings, palm trees, street lights,
-// a beach and pier on the east shore, plus the places the story visits.
+// The city of Neon Shores: a sun-soaked coastal grid generated from a seed.
+// A regular road network, city blocks with named pastel buildings, palm trees
+// and street lights, then sand, a pier and the sea down the east shore — plus
+// the named places the story visits and the collision the whole game shares.
 
 import { WORLD } from './config.js';
 import { pick, range } from './random.js';
@@ -21,7 +22,7 @@ const BLOCK_NAMES = [
   'Coco Flats', 'Vista Tower', 'Surf Shop Ola', 'Clinica Vida', 'Estrella Cinema', 'Puerto Lofts',
 ];
 
-// Key story locations, placed on real corners of the grid.
+// Key story locations, each placed on a real corner of the grid.
 export const PLACES = {
   diner:   { x: 640,  y: 560,  name: "Rosa's Diner",        color: '#ff5d7a' },
   docks:   { x: 2760, y: 2080, name: 'Harbor Docks',        color: '#ffb02e' },
@@ -37,7 +38,7 @@ export function roadCenter(index) {
   return index * WORLD.block + WORLD.block / 2;
 }
 
-// Is a point on a road (either direction) rather than inside a block?
+// Is a point on a road (in either direction) rather than inside a block?
 export function onRoad(x, y) {
   if (x >= WORLD.beachX - 60) return false;
   const mx = ((x % WORLD.block) + WORLD.block) % WORLD.block;
@@ -62,7 +63,7 @@ export function createWorld(random) {
       const bw = WORLD.block - WORLD.road - 28;
       const bh = WORLD.block - WORLD.road - 28;
       if (bx > WORLD.beachX - 200) continue; // shore blocks stay sand and palms
-      // One or two buildings per block, with a small plaza sometimes.
+      // One large building per block, or two smaller ones side by side.
       const split = random() > 0.45;
       const style = pick(random, BUILDING_STYLES);
       const name = pick(random, BLOCK_NAMES);
@@ -72,17 +73,18 @@ export function createWorld(random) {
       } else {
         buildings.push({ x: bx + bw * 0.08, y: by + bh * 0.08, w: bw * 0.84, h: bh * 0.84, floors: 3 + Math.floor(random() * 8), ...style, name });
       }
-      // Palms and lights around the block corners.
+      // Palms and street lights scattered around the block.
       for (let i = 0; i < 3; i += 1) {
         trees.push({ x: bx + random() * bw, y: by - 8, s: range(random, 0.8, 1.25) });
         lights.push({ x: bx - 10, y: by + random() * bh });
       }
     }
   }
-  // Beach palms and the pier.
+  // A loose line of palms along the beach.
   for (let i = 0; i < 26; i += 1) {
     trees.push({ x: range(random, WORLD.beachX - 40, WORLD.beachX + 130), y: random() * WORLD.height, s: range(random, 0.9, 1.4) });
   }
+  // Ten golden shells hidden on the roads, waiting to be collected.
   for (let i = 0; i < 10; i += 1) {
     let x = 0; let y = 0; let tries = 0;
     do { x = range(random, 200, WORLD.beachX - 200); y = range(random, 200, WORLD.height - 200); tries += 1; }
@@ -94,7 +96,9 @@ export function createWorld(random) {
   return { buildings, trees, lights, shells, colliders };
 }
 
-// Push a circle (entity) out of every building rectangle and the world edge.
+// Push a circular entity out of every building rectangle and clamp it to the
+// world edge. Sets entity.hitWall when a building stopped it, which the
+// driving code reads to score crash damage.
 export function collide(world, entity, radius) {
   for (const b of world.colliders) {
     const nearX = Math.max(b.x, Math.min(entity.x, b.x + b.w));

@@ -1,5 +1,6 @@
-// The player: Dario Venn on foot and behind the wheel — movement, driving
-// physics, entering and stealing cars, fists and the pistol, health and cash.
+// The player: Dario Venn on foot and behind the wheel. Walking and sprinting,
+// arcade driving physics with a handbrake, entering and leaving cars, and the
+// state (health, cash, weapon) that the HUD and the save file both read.
 
 import { CAR, PLAYER, WORLD } from './config.js';
 import { collide } from './world.js';
@@ -10,7 +11,7 @@ export function createPlayer(saved) {
     health: saved?.health ?? 100,
     armor: 0,
     money: saved?.money ?? 120,
-    car: null,               // the car being driven, or null on foot
+    car: null,               // the car being driven, or null while on foot
     hasGun: saved?.hasGun ?? false,
     ammo: saved?.ammo ?? 0,
     punchCooldown: 0,
@@ -20,7 +21,7 @@ export function createPlayer(saved) {
   };
 }
 
-// On-foot movement with a sprint, plus building collision.
+// On-foot movement in eight directions with a sprint, plus building collision.
 export function updateOnFoot(world, player, input, dt) {
   const axis = input.axis();
   const sprint = input.down('shift');
@@ -36,8 +37,9 @@ export function updateOnFoot(world, player, input, dt) {
   collide(world, player, PLAYER.radius);
 }
 
-// Driving: arcade physics — throttle, brake/reverse, steering that scales
-// with speed, handbrake drift, and damage when the world pushes back.
+// Driving: throttle and brake/reverse, steering authority that grows with
+// speed, a handbrake that trades grip for rotation, and crash damage when a
+// building stops the car hard. Returns a 0..1 crash severity for sound.
 export function updateDriving(world, player, input, dt) {
   const car = player.car;
   if (!car) return 0;

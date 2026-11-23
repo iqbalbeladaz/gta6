@@ -1,7 +1,7 @@
-// The story of Neon Shores, in five missions. Dario Venn, a wheelman who quit
-// the life, owes the Marlin Syndicate one last week of work. Rosa Marlin holds
-// his brother's debt — every job pays a piece of it back. Original people,
-// original city, original trouble.
+// The story of Neon Shores, told in five missions. Dario Venn, a wheelman who
+// quit the life, owes the Marlin Syndicate one last week of work. Rosa Marlin
+// holds his brother's debt — every job pays a piece of it back. Original
+// people, an original city, original trouble.
 
 import { MISSION_REWARD } from './config.js';
 import { PLACES } from './world.js';
@@ -12,9 +12,10 @@ export const STORY_INTRO = [
   'Five jobs. One week. Then the Venn family walks free. Probably.',
 ];
 
-// Each mission: a title, who gives it, the briefing lines, and a list of stages.
-// A stage is a place to reach, optionally in a specific car, with a timer and a
-// wanted level the job attracts. The last stage may ask the player to lose the law.
+// Each mission has a title, a giver, a briefing line and a list of stages.
+// A stage asks the player to reach a place, get into or steal a specific car,
+// or lose the law — optionally against a timer, and often attracting a wanted
+// level of its own while it runs.
 export const MISSIONS = [
   {
     title: 'First Wheels',
@@ -108,7 +109,8 @@ export function advanceStage(state) {
   return 'stage';
 }
 
-// Where the current objective points, in world coordinates (or null).
+// Where the current objective points, in world coordinates (or null when the
+// stage has no fixed place, like losing the law).
 export function objectiveTarget(state, playerCar) {
   const stage = currentStage(state);
   if (!stage) return null;

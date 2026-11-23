@@ -1,6 +1,7 @@
-// Rendering: the sun-soaked city from a smooth chase camera, stylised cars and
-// people, day light that warms toward evening, and the full HUD — health, cash,
-// wanted stars, mission banner, speedometer and a live minimap.
+// Rendering: the sun-soaked city drawn from a smooth chase camera, stylised
+// cars and people, daylight that warms toward evening and turns lamps and
+// headlights on at dusk, and the full HUD — health and cash, wanted stars,
+// the mission banner and objective line, a speedometer and a live minimap.
 
 import { WORLD } from './config.js';
 import { PLACES } from './world.js';
@@ -39,7 +40,7 @@ export function drawWorld(ctx, game, view) {
   const x0 = camera.x - 60, y0 = camera.y - 60;
   const x1 = camera.x + view.w / camera.zoom + 60, y1 = camera.y + view.h / camera.zoom + 60;
 
-  // Sea, sand, grass base.
+  // Ground base: grass, then sand, then the sea down the east shore.
   ctx.fillStyle = '#57b06a';
   ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
   ctx.fillStyle = '#f4d98c';
@@ -50,7 +51,7 @@ export function drawWorld(ctx, game, view) {
   for (let y = 60; y < WORLD.height; y += 130) {
     ctx.fillRect(WORLD.beachX + 196 + Math.sin(y * 0.05 + game.elapsed) * 7, y, 26, 5);
   }
-  // The pier.
+  // The pier, reaching out over the water.
   ctx.fillStyle = '#8a6d4b';
   ctx.fillRect(WORLD.beachX + 40, PLACES.pier.y - 26, 230, 52);
   ctx.fillStyle = '#6e5638';
@@ -70,8 +71,8 @@ export function drawWorld(ctx, game, view) {
     }
   }
 
-  // Roads: asphalt strips with dashes, crossings and sidewalks. The grid
-  // stops at the shore — no streets in the sea.
+  // Roads: asphalt strips with sidewalks and dashed centre lines. The grid
+  // stops at the shore — there are no streets in the sea.
   ctx.fillStyle = '#cfc4a5';
   for (let i = 0; i <= Math.floor(WORLD.width / WORLD.block); i += 1) {
     const cx = i * WORLD.block + WORLD.block / 2;
@@ -97,7 +98,8 @@ export function drawWorld(ctx, game, view) {
   }
   ctx.setLineDash([]);
 
-  // Buildings with roofs, windows and names.
+  // Buildings: a drop shadow, pastel walls, a roof inset, a grid of windows
+  // and the block's name lettered across the roof.
   for (const b of world.buildings) {
     if (b.x + b.w < x0 || b.y + b.h < y0 || b.x > x1 || b.y > y1) continue;
     ctx.fillStyle = 'rgba(0,0,0,0.22)';
@@ -120,7 +122,7 @@ export function drawWorld(ctx, game, view) {
     }
   }
 
-  // Place markers: glowing story locations.
+  // Place markers: a soft glowing disc and a name over each story location.
   for (const key of Object.keys(PLACES)) {
     const p = PLACES[key];
     ctx.fillStyle = p.color;
@@ -133,7 +135,7 @@ export function drawWorld(ctx, game, view) {
     ctx.fillText(p.name, p.x, p.y - 50);
   }
 
-  // Palms and street lights.
+  // Palm trees: a leaning trunk and a crown of curved fronds.
   for (const tree of world.trees) {
     if (tree.x < x0 || tree.y < y0 || tree.x > x1 || tree.y > y1) continue;
     ctx.strokeStyle = '#7a5a38';
@@ -165,7 +167,7 @@ export function drawWorld(ctx, game, view) {
     ctx.beginPath(); ctx.arc(l.x, l.y, 4, 0, 6.29); ctx.fill();
   }
 
-  // Golden shells (collectibles).
+  // Golden shells (the collectibles), bobbing gently.
   for (const s of world.shells) {
     if (s.taken) continue;
     const bob = Math.sin(game.elapsed * 2.4 + s.bob) * 4;
@@ -175,7 +177,7 @@ export function drawWorld(ctx, game, view) {
     ctx.beginPath(); ctx.arc(s.x, s.y + bob, 5, 0, 6.29); ctx.fill();
   }
 
-  // Objective beacon: a pillar of light on the current target.
+  // Objective beacon: a pillar of light standing on the current target.
   const target = game.objectivePos;
   if (target) {
     const pulse = 26 + Math.sin(game.elapsed * 4) * 5;
@@ -190,15 +192,15 @@ export function drawWorld(ctx, game, view) {
   }
   ctx.restore();
 
-  // Warm evening wash as the day ages.
+  // A warm evening wash over everything as the day ages.
   if (warm > 0.55) {
     ctx.fillStyle = `rgba(255,122,26,${(warm - 0.55) * 0.22})`;
     ctx.fillRect(0, 0, view.w, view.h);
   }
 }
 
-// How far dusk has settled, 0 (daylight) to 1 (full evening): the fade
-// starts at timeOfDay 0.62 and completes a short stretch of the day later.
+// How far dusk has settled, 0 (full daylight) to 1 (evening): the fade starts
+// at timeOfDay 0.62 and completes a short stretch of the day later.
 export function duskStrength(timeOfDay) {
   return Math.max(0, Math.min(1, (timeOfDay - 0.62) / 0.13));
 }
@@ -338,7 +340,7 @@ export function drawMinimap(ctx, game, x, y, size) {
 
 export function drawHUD(ctx, game, view) {
   const p = game.player;
-  // Top-left: portrait chip, health and armor bars, cash.
+  // Top-left: portrait chip, health and armor bars, and the cash readout.
   ctx.fillStyle = 'rgba(8,18,28,0.78)';
   roundRect(ctx, 16, 16, 252, 86, 12); ctx.fill();
   ctx.fillStyle = '#ff5d7a';
@@ -356,7 +358,7 @@ export function drawHUD(ctx, game, view) {
   ctx.fillStyle = '#7dff9a'; ctx.font = 'bold 17px system-ui';
   ctx.fillText('$' + Math.floor(p.money).toLocaleString('en-US'), 82, 94);
 
-  // Top-right: wanted stars and the clock.
+  // Top-right: the wanted stars and the day clock.
   ctx.fillStyle = 'rgba(8,18,28,0.78)';
   roundRect(ctx, view.w - 236, 16, 220, 62, 12); ctx.fill();
   for (let i = 0; i < 5; i += 1) star(ctx, view.w - 196 + i * 38, 42, 14, i < game.wanted);
@@ -376,7 +378,7 @@ export function drawHUD(ctx, game, view) {
     ctx.textAlign = 'left';
   }
 
-  // Mission banner, top centre.
+  // Mission banner, top centre, while news is fresh.
   if (game.banner) {
     const b = game.banner;
     ctx.globalAlpha = Math.min(1, b.ttl);
@@ -389,7 +391,7 @@ export function drawHUD(ctx, game, view) {
     ctx.globalAlpha = 1; ctx.textAlign = 'left';
   }
 
-  // Objective line, bottom centre, with distance and timer.
+  // Objective line, bottom centre, with distance and any running timer.
   if (game.objectiveText) {
     ctx.fillStyle = 'rgba(8,18,28,0.8)';
     roundRect(ctx, view.w / 2 - 300, view.h - 118, 600, 40, 10); ctx.fill();
@@ -403,7 +405,7 @@ export function drawHUD(ctx, game, view) {
 
   drawMinimap(ctx, game, 16, view.h - 196, 218);
 
-  // Bottom-right: speed and weapon.
+  // Bottom-right: speed and the weapon in hand.
   ctx.fillStyle = 'rgba(8,18,28,0.78)';
   roundRect(ctx, view.w - 218, view.h - 108, 202, 92, 12); ctx.fill();
   ctx.fillStyle = '#fff'; ctx.font = 'bold 26px system-ui'; ctx.textAlign = 'center';
@@ -414,7 +416,7 @@ export function drawHUD(ctx, game, view) {
   ctx.fillText(p.hasGun ? 'PISTOL · ' + p.ammo + ' RDS' : 'FISTS', view.w - 152, view.h - 28);
   ctx.textAlign = 'left';
 
-  // Context prompt and toast.
+  // Context prompt ("press F…") and the centre toast line.
   if (game.prompt) {
     ctx.fillStyle = 'rgba(8,18,28,0.85)';
     roundRect(ctx, view.w / 2 - 170, view.h - 168, 340, 34, 9); ctx.fill();
@@ -428,7 +430,7 @@ export function drawHUD(ctx, game, view) {
     ctx.fillText(game.toast.text, view.w / 2, view.h - 190);
     ctx.globalAlpha = 1; ctx.textAlign = 'left';
   }
-  // Shells counter.
+  // Collectibles counter, just above the minimap.
   ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.font = 'bold 13px system-ui';
   ctx.fillText('◉ Neon Shells ' + game.shellsFound + ' / ' + game.world.shells.length, 16, view.h - 206);
 }

@@ -1,6 +1,8 @@
-// Procedural sound with WebAudio: no audio files, everything is synthesized —
-// engine hum that follows speed, a two-tone siren, gunshots, pickups, crashes
-// and a soft synthwave pad under the menus. Starts on the first user gesture.
+// Procedural sound built on WebAudio — there are no audio files at all.
+// Everything is synthesized live: an engine hum that follows the car's speed,
+// a two-tone siren, gunshots and punches from filtered noise, pickup and cash
+// chimes, and short mission stingers. The context starts on the first user
+// gesture, as browsers require.
 
 export function createAudio() {
   let ctx = null;

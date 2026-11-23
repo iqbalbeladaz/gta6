@@ -1,9 +1,11 @@
 // Deterministic screenshot scenes, posed by the game's own code so the kit's
-// shots.json captures real renders: ?shot=start|play|chase|end&seed=1
-// - start: the title screen over the waking city
-// - play:  on foot beside a coupe, first mission objective on the HUD
-// - chase: three stars, cruisers on the player's tail, mid-story
-// - end:   mission complete at the pier at golden hour
+// shots.json captures real renders of real play states:
+//   ?shot=start  the title screen over the waking city
+//   ?shot=play   on foot beside a coupe, first mission objective on the HUD
+//   ?shot=chase  three stars, cruisers on the player's tail, mid-story
+//   ?shot=end    mission complete at the pier at golden hour
+// Each scene sets the world, the player and the camera directly, then the
+// main loop steps the simulation a little so traffic and light feel alive.
 
 import { PLACES } from './world.js';
 import { makeCar, makePoliceCar } from './entities.js';
@@ -25,7 +27,7 @@ export function applyShot(game, name, random) {
     coupe.angle = 0.4;
     game.cars.push(coupe);
     startMission(game.missions);
-    game.missions.active.stage = 1; // driving to the diner
+    game.missions.active.stage = 1; // already driving to the diner
     game.refreshObjective();
     game.camera.x = p.x - 620; game.camera.y = p.y - 340; game.camera.init = true;
     return;
@@ -50,7 +52,7 @@ export function applyShot(game, name, random) {
     game.camera.x = p.x - 560; game.camera.y = p.y - 320; game.camera.init = true; game.camera.zoom = 0.82;
     return;
   }
-  // end: the gold Sunray delivered, golden hour at the pier.
+  // end: the gold Sunray delivered and the story done, golden hour at the pier.
   game.timeOfDay = 0.86;
   const gold = makeCar(random, PLACES.pier.x - 150, PLACES.pier.y + 120, 2);
   gold.color = '#ffd23e';

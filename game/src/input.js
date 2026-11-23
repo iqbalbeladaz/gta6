@@ -1,5 +1,6 @@
-// Keyboard and mouse input: a held-key set, edge-triggered presses, and the
-// mouse position in screen space for aiming and menu clicks.
+// Keyboard and mouse input: a held-key set for movement, an edge-triggered
+// press set for one-shot actions, and the mouse position in screen space for
+// aiming and for the menu. Presses are cleared once per frame by endFrame().
 
 export function createInput(canvas) {
   const held = new Set();
