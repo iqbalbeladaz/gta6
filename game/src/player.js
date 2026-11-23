@@ -1,7 +1,7 @@
 // The player: Dario Venn on foot and behind the wheel. Walking and sprinting,
 // arcade driving physics with a handbrake drift, entering and leaving cars,
-// and the
-// state (health, cash, weapon) that the HUD and the save file both read.
+// and all the state (health, cash, weapon) that the HUD and the save file
+// both read.
 
 import { CAR, PLAYER, WORLD } from './config.js';
 import { collide } from './world.js';

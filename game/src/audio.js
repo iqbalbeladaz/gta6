@@ -3,7 +3,8 @@
 // a two-tone siren, gunshots and punches from filtered noise, pickup and cash
 // chimes, and short mission stingers. The context starts on the first user
 // gesture, as browsers require, and every sound is kept short and quiet
-// enough to sit under a long play session without grating.
+// enough to sit under a long play session without grating. The master level
+// stays modest on purpose: the city should hum along, never shout.
 
 export function createAudio() {
   let ctx = null;

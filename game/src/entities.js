@@ -1,7 +1,8 @@
 // The living city: traffic that drives the road grid and queues behind each
 // other, pedestrians who stroll the sidewalks, scatter from danger and
 // witness crimes, and the Shores PD cruisers that hunt the player when the
-// stars climb.
+// stars climb. Traffic obeys the grid and the car ahead of it — nobody here
+// drives through anybody else if they can possibly help it.
 
 import { CAR_MODELS, WANTED, WORLD } from './config.js';
 import { pick, range } from './random.js';

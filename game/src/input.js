@@ -2,6 +2,7 @@
 // press set for one-shot actions, and the mouse position in screen space for
 // aiming and for the menu. Presses are cleared once per frame by endFrame(),
 // which main.js calls at the very end of its loop, so each press fires once.
+// Mouse clicks get the same one-frame treatment, so menus never double-fire.
 
 export function createInput(canvas) {
   const held = new Set();

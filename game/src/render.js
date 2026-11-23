@@ -2,7 +2,8 @@
 // cars and people, daylight that warms toward evening and turns lamps and
 // headlights on at dusk, and the full HUD — health and cash, wanted stars,
 // the mission banner and objective line, a speedometer and a live minimap
-// that tracks the police, the traffic and the current objective.
+// that tracks the police, the traffic and the current objective. Nothing is
+// pre-rendered: every frame is drawn fresh from the live world state.
 
 import { WORLD } from './config.js';
 import { PLACES } from './world.js';

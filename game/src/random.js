@@ -1,6 +1,7 @@
 // A small seeded random source (mulberry32), deterministic by design: a given
 // seed always builds the same city, deals the same traffic and poses the same
 // screenshot scenes, so renders and playtests are perfectly reproducible.
+// Nothing in the game ever calls Math.random, which keeps that promise airtight.
 
 export function createRandom(seed) {
   let state = (seed >>> 0) || 1;

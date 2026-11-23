@@ -1,7 +1,8 @@
 // The story of Neon Shores, told in five missions. Dario Venn, a wheelman who
 // quit the life, owes the Marlin Syndicate one last week of work. Rosa Marlin
 // holds his brother's debt — every job pays a piece of it back. Original
-// people, an original city, original trouble.
+// people, an original city, original trouble. Each job is a chain of short
+// stages, so the objective line on the HUD always knows what happens next.
 
 import { MISSION_REWARD } from './config.js';
 import { PLACES } from './world.js';

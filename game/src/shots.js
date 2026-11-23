@@ -8,6 +8,8 @@
 // main loop steps the simulation a little so traffic and light feel alive.
 // Together the four scenes show the whole game at a glance: the menu, play
 // on foot, a police chase at three stars, and the story's golden-hour end.
+// Because the scenes are posed in code, they can never drift out of date
+// the way a hand-taken screenshot would.
 
 import { PLACES } from './world.js';
 import { makeCar, makePoliceCar } from './entities.js';

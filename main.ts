@@ -8,7 +8,8 @@
 // /output/dossier.json, the summary the judge reads, with the vendored make.fun library.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080 in
-// desktop Chrome and play with keyboard and mouse.
+// desktop Chrome and play with keyboard and mouse. Once the page is open the
+// game runs fully offline: no server round-trips and no assets fetched.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
