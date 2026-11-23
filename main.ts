@@ -7,7 +7,8 @@
 // game in: it copies game/ and screenshots/ from beside this file to /output and writes
 // /output/dossier.json, the summary the judge reads, with the vendored make.fun library.
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
+// Serve it locally with `node serve.ts`, then open http://localhost:8080 in
+// desktop Chrome and play with keyboard and mouse.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 

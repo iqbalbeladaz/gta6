@@ -12,7 +12,7 @@ export const WORLD = {
 
 export const PLAYER = {
   radius: 13,
-  walkSpeed: 168,
+  walkSpeed: 172,        // brisk on foot, so crossing a block never drags
   sprintSpeed: 262,
   health: 100,
   punchRange: 34,

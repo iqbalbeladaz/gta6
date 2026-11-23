@@ -1,7 +1,8 @@
 // Rendering: the sun-soaked city drawn from a smooth chase camera, stylised
 // cars and people, daylight that warms toward evening and turns lamps and
 // headlights on at dusk, and the full HUD — health and cash, wanted stars,
-// the mission banner and objective line, a speedometer and a live minimap.
+// the mission banner and objective line, a speedometer and a live minimap
+// that tracks the police, the traffic and the current objective.
 
 import { WORLD } from './config.js';
 import { PLACES } from './world.js';

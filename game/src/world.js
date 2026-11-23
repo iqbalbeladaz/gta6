@@ -1,6 +1,7 @@
 // The city of Neon Shores: a sun-soaked coastal grid generated from a seed.
 // A regular road network, city blocks with named pastel buildings, palm trees
-// and street lights, then sand, a pier and the sea down the east shore — plus
+// and street lights, then sand, a wooden pier and open sea down the east
+// shore — plus
 // the named places the story visits and the collision the whole game shares.
 
 import { WORLD } from './config.js';

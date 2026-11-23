@@ -2,7 +2,8 @@
 // crime game: explore a coastal city on foot and by car, steal rides, run
 // Rosa Marlin's five story jobs, collect the golden shells, work taxi fares,
 // and keep one step ahead of the Shores PD. Keyboard and mouse to play;
-// progress saves itself in the browser as you go.
+// progress saves itself in the browser as you go, so closing the tab never
+// costs you a finished job.
 
 import { SAVE_KEY, WANTED } from './config.js';
 import { createRandom } from './random.js';

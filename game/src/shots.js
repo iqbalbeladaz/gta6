@@ -6,6 +6,8 @@
 //   ?shot=end    mission complete at the pier at golden hour
 // Each scene sets the world, the player and the camera directly, then the
 // main loop steps the simulation a little so traffic and light feel alive.
+// Together the four scenes show the whole game at a glance: the menu, play
+// on foot, a police chase at three stars, and the story's golden-hour end.
 
 import { PLACES } from './world.js';
 import { makeCar, makePoliceCar } from './entities.js';

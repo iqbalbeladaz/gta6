@@ -1,6 +1,6 @@
-// A small seeded random source (mulberry32). A given seed always builds the
-// same city, deals the same traffic and poses the same screenshot scenes, so
-// renders and playtests are reproducible.
+// A small seeded random source (mulberry32), deterministic by design: a given
+// seed always builds the same city, deals the same traffic and poses the same
+// screenshot scenes, so renders and playtests are perfectly reproducible.
 
 export function createRandom(seed) {
   let state = (seed >>> 0) || 1;

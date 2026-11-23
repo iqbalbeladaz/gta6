@@ -20,7 +20,7 @@ export const MISSIONS = [
   {
     title: 'First Wheels',
     giver: 'Rosa Marlin',
-    brief: "Rosa: \"You still owe me a driver, Dario. Get off the sidewalk, take a car — any car — and come to my diner. Walk in rich or don't walk in.\"",
+    brief: "Rosa: \"You still owe me a driver, Dario. Get off the sidewalk, take a car — any car — and come to my diner. Come hungry, leave rich — or don't come at all.\"",
     stages: [
       { type: 'enterCar', text: 'Get in a car' },
       { type: 'goto', place: 'diner', text: "Drive to Rosa's Diner" },

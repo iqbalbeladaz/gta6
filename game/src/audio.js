@@ -2,7 +2,8 @@
 // Everything is synthesized live: an engine hum that follows the car's speed,
 // a two-tone siren, gunshots and punches from filtered noise, pickup and cash
 // chimes, and short mission stingers. The context starts on the first user
-// gesture, as browsers require.
+// gesture, as browsers require, and every sound is kept short and quiet
+// enough to sit under a long play session without grating.
 
 export function createAudio() {
   let ctx = null;
