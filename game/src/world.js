@@ -1,124 +1,119 @@
-// The game's rules and state, with no drawing and no browser in it: the player's paddle, the
-// pool of falling blocks and coins, spawning, collisions, score, lives and level. step() advances
-// one fixed step and returns what happened as bit flags, so the caller can react without the
-// world knowing about screens or sound. Nothing here allocates after createWorld returns.
-import { BLOCK, COIN, FIELD, LEVEL, LIVES, PLAYER, POOL_SIZE } from './config.js';
+// The city of Neon Shores: a sun-soaked coastal grid generated from a seed —
+// road network, city blocks with named buildings, palm trees, street lights,
+// a beach and pier on the east shore, plus the places the story visits.
 
-export const KIND_BLOCK = 0;
-export const KIND_COIN = 1;
+import { WORLD } from './config.js';
+import { pick, range } from './random.js';
 
-export const EVENT_HIT = 1;
-export const EVENT_COIN = 2;
-export const EVENT_OVER = 4;
+const BUILDING_STYLES = [
+  { wall: '#e8b4a0', roof: '#b96a4e', trim: '#fff1e2' },
+  { wall: '#a8d8e8', roof: '#5d8aa8', trim: '#eafcff' },
+  { wall: '#f2d492', roof: '#c1913c', trim: '#fff6da' },
+  { wall: '#c9b8e8', roof: '#7a63a8', trim: '#f4efff' },
+  { wall: '#9fd6b5', roof: '#4e7d5f', trim: '#eafff1' },
+  { wall: '#f0f0f2', roof: '#8a8f98', trim: '#ffd23e' },
+  { wall: '#e89fb5', roof: '#a84e6d', trim: '#ffeef4' },
+];
 
-function overlaps(a, b) {
-  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+const BLOCK_NAMES = [
+  'Marlin Hotel', 'Casa Azul', 'The Pelican', 'Solana Suites', 'Cafe Brisa', 'Tide Arcade',
+  'Palma Mall', 'Hotel Miramar', 'Neon Gym', 'Banco del Sol', 'Marina Offices', 'The Flamingo',
+  'Coco Flats', 'Vista Tower', 'Surf Shop Ola', 'Clinica Vida', 'Estrella Cinema', 'Puerto Lofts',
+];
+
+// Key story locations, placed on real corners of the grid.
+export const PLACES = {
+  diner:   { x: 640,  y: 560,  name: "Rosa's Diner",        color: '#ff5d7a' },
+  docks:   { x: 2760, y: 2080, name: 'Harbor Docks',        color: '#ffb02e' },
+  motel:   { x: 640,  y: 1820, name: 'Motel Coral',         color: '#19c2a6' },
+  hotel:   { x: 2760, y: 640,  name: 'Miramar Beach Hotel', color: '#ffd23e' },
+  garage:  { x: 1480, y: 1400, name: "Venn's Garage",       color: '#3f8ef7' },
+  pier:    { x: 3180, y: 1400, name: 'Neon Pier',           color: '#c77dff' },
+  hospital:{ x: 1060, y: 2240, name: 'Clinica Vida',        color: '#ffffff' },
+  police:  { x: 1900, y: 560,  name: 'Shores PD',           color: '#7fb2d9' },
+};
+
+export function roadCenter(index) {
+  return index * WORLD.block + WORLD.block / 2;
+}
+
+// Is a point on a road (either direction) rather than inside a block?
+export function onRoad(x, y) {
+  if (x >= WORLD.beachX - 60) return false;
+  const mx = ((x % WORLD.block) + WORLD.block) % WORLD.block;
+  const my = ((y % WORLD.block) + WORLD.block) % WORLD.block;
+  const half = WORLD.road / 2;
+  const mid = WORLD.block / 2;
+  return Math.abs(mx - mid) < half || Math.abs(my - mid) < half;
 }
 
 export function createWorld(random) {
-  const player = { x: 0, y: FIELD.groundY - PLAYER.height, width: PLAYER.width, height: PLAYER.height, invulnerable: 0 };
-  const items = [];
-  for (let index = 0; index < POOL_SIZE; index += 1) {
-    items.push({ active: false, kind: KIND_BLOCK, x: 0, y: 0, width: 0, height: 0, speed: 0 });
-  }
-  const state = { player, items, score: 0, lives: LIVES, level: 1, elapsed: 0, blockTimer: 0, coinTimer: 0 };
+  const buildings = [];
+  const trees = [];
+  const lights = [];
+  const shells = [];   // hidden collectibles: golden neon shells
+  const cols = Math.floor(WORLD.width / WORLD.block);
+  const rows = Math.floor(WORLD.height / WORLD.block);
 
-  function reset() {
-    player.x = (FIELD.width - player.width) / 2;
-    player.invulnerable = 0;
-    for (const item of items) item.active = false;
-    state.score = 0;
-    state.lives = LIVES;
-    state.level = 1;
-    state.elapsed = 0;
-    state.blockTimer = BLOCK.interval;
-    state.coinTimer = COIN.interval;
-  }
-
-  function freeItem() {
-    for (let index = 0; index < items.length; index += 1) if (!items[index].active) return items[index];
-    return null;
-  }
-
-  function spawnBlock() {
-    const item = freeItem();
-    if (item === null) return;
-    item.active = true;
-    item.kind = KIND_BLOCK;
-    item.width = BLOCK.minWidth + random() * (BLOCK.maxWidth - BLOCK.minWidth);
-    item.height = BLOCK.height;
-    item.x = random() * (FIELD.width - item.width);
-    item.y = -item.height;
-    item.speed = BLOCK.speed + BLOCK.speedPerLevel * (state.level - 1) + random() * BLOCK.speedJitter;
-  }
-
-  function spawnCoin() {
-    const item = freeItem();
-    if (item === null) return;
-    item.active = true;
-    item.kind = KIND_COIN;
-    item.width = COIN.size;
-    item.height = COIN.size;
-    item.x = random() * (FIELD.width - item.width);
-    item.y = -item.height;
-    item.speed = COIN.speed + COIN.speedPerLevel * (state.level - 1);
-  }
-
-  function blockInterval() {
-    return Math.max(BLOCK.minInterval, BLOCK.interval * BLOCK.intervalScale ** (state.level - 1));
-  }
-
-  /**
-   * One fixed step. `direction` is -1, 0 or 1 (left, still, right). With `harmless` set (the title
-   * screen's backdrop) things fall but nothing touches the player and nothing scores.
-   */
-  function step(dt, direction, harmless) {
-    let events = 0;
-    state.elapsed += dt;
-    state.level = Math.min(LEVEL.max, 1 + Math.floor(state.elapsed / LEVEL.seconds));
-
-    player.x = Math.min(FIELD.width - player.width, Math.max(0, player.x + direction * PLAYER.speed * dt));
-    if (player.invulnerable > 0) player.invulnerable = Math.max(0, player.invulnerable - dt);
-
-    state.blockTimer -= dt;
-    if (state.blockTimer <= 0) {
-      spawnBlock();
-      state.blockTimer += blockInterval();
-    }
-    state.coinTimer -= dt;
-    if (state.coinTimer <= 0) {
-      spawnCoin();
-      state.coinTimer += COIN.interval + random() * COIN.intervalJitter;
-    }
-
-    for (let index = 0; index < items.length; index += 1) {
-      const item = items[index];
-      if (!item.active) continue;
-      item.y += item.speed * dt;
-      if (item.y > FIELD.groundY) {
-        item.active = false;
-        if (item.kind === KIND_BLOCK && !harmless) state.score += BLOCK.dodgePoints;
-        continue;
+  for (let cx = 0; cx < cols; cx += 1) {
+    for (let cy = 0; cy < rows; cy += 1) {
+      const bx = cx * WORLD.block + WORLD.road / 2 + 14;
+      const by = cy * WORLD.block + WORLD.road / 2 + 14;
+      const bw = WORLD.block - WORLD.road - 28;
+      const bh = WORLD.block - WORLD.road - 28;
+      if (bx > WORLD.beachX - 200) continue; // shore blocks stay sand and palms
+      // One or two buildings per block, with a small plaza sometimes.
+      const split = random() > 0.45;
+      const style = pick(random, BUILDING_STYLES);
+      const name = pick(random, BLOCK_NAMES);
+      if (split) {
+        buildings.push({ x: bx, y: by, w: bw * 0.46, h: bh, floors: 2 + Math.floor(random() * 6), ...style, name });
+        buildings.push({ x: bx + bw * 0.54, y: by, w: bw * 0.46, h: bh * (0.55 + random() * 0.4), floors: 2 + Math.floor(random() * 5), ...pick(random, BUILDING_STYLES), name: '' });
+      } else {
+        buildings.push({ x: bx + bw * 0.08, y: by + bh * 0.08, w: bw * 0.84, h: bh * 0.84, floors: 3 + Math.floor(random() * 8), ...style, name });
       }
-      if (harmless || !overlaps(item, player)) continue;
-      if (item.kind === KIND_COIN) {
-        item.active = false;
-        state.score += COIN.points;
-        events |= EVENT_COIN;
-      } else if (player.invulnerable === 0) {
-        item.active = false;
-        state.lives -= 1;
-        player.invulnerable = PLAYER.invulnerable;
-        events |= EVENT_HIT;
-        if (state.lives === 0) {
-          events |= EVENT_OVER;
-          break;
-        }
+      // Palms and lights around the block corners.
+      for (let i = 0; i < 3; i += 1) {
+        trees.push({ x: bx + random() * bw, y: by - 8, s: range(random, 0.8, 1.25) });
+        lights.push({ x: bx - 10, y: by + random() * bh });
       }
     }
-    return events;
+  }
+  // Beach palms and the pier.
+  for (let i = 0; i < 26; i += 1) {
+    trees.push({ x: range(random, WORLD.beachX - 40, WORLD.beachX + 130), y: random() * WORLD.height, s: range(random, 0.9, 1.4) });
+  }
+  for (let i = 0; i < 10; i += 1) {
+    let x = 0; let y = 0; let tries = 0;
+    do { x = range(random, 200, WORLD.beachX - 200); y = range(random, 200, WORLD.height - 200); tries += 1; }
+    while (!onRoad(x, y) && tries < 20);
+    shells.push({ x, y, taken: false, bob: random() * 6.28 });
   }
 
-  reset();
-  return { state, reset, step };
+  const colliders = buildings.map((b) => ({ x: b.x, y: b.y, w: b.w, h: b.h }));
+  return { buildings, trees, lights, shells, colliders };
+}
+
+// Push a circle (entity) out of every building rectangle and the world edge.
+export function collide(world, entity, radius) {
+  for (const b of world.colliders) {
+    const nearX = Math.max(b.x, Math.min(entity.x, b.x + b.w));
+    const nearY = Math.max(b.y, Math.min(entity.y, b.y + b.h));
+    const dx = entity.x - nearX;
+    const dy = entity.y - nearY;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < radius * radius) {
+      if (d2 < 0.01) { entity.x = b.x - radius; continue; }
+      const d = Math.sqrt(d2);
+      entity.x = nearX + (dx / d) * radius;
+      entity.y = nearY + (dy / d) * radius;
+      entity.hitWall = true;
+    }
+  }
+  entity.x = Math.max(radius, Math.min(WORLD.width - radius, entity.x));
+  entity.y = Math.max(radius, Math.min(WORLD.height - radius, entity.y));
+}
+
+export function distance(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
 }
